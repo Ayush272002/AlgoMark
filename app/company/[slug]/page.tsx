@@ -14,30 +14,15 @@ import {
   Circle,
 } from 'lucide-react';
 import Link from 'next/link';
-
-interface Problem {
-  id: number;
-  leetcodeId: number;
-  title: string;
-  acceptance: string;
-  difficulty: string;
-  frequency: number;
-  link: string;
-  userStatus: Array<{ status: string }>;
-}
-
-interface Company {
-  id: number;
-  name: string;
-  problems: Problem[];
-}
+import { toast } from 'sonner';
+import { CompanyProblem } from '@/interface/CompnayProblem';
 
 export default function CompanyPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const slug = params.slug as string;
-  const [company, setCompany] = useState<Company | null>(null);
+  const [company, setCompany] = useState<CompanyProblem | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchCompanyProblems = useCallback(async () => {
@@ -46,9 +31,12 @@ export default function CompanyPage() {
       if (response.ok) {
         const data = await response.json();
         setCompany(data);
+      } else {
+        toast.error('Failed to load company problems');
       }
     } catch (error) {
       console.error('Error fetching company problems:', error);
+      toast.error('Failed to load company problems');
     } finally {
       setLoading(false);
     }
@@ -69,7 +57,7 @@ export default function CompanyPage() {
 
   const updateProgress = async (problemId: number, status: string) => {
     try {
-      await fetch('/api/progress', {
+      const response = await fetch('/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -78,10 +66,26 @@ export default function CompanyPage() {
         }),
       });
 
-      // Refresh the data
-      fetchCompanyProblems();
+      if (response.ok) {
+        // Show success toast based on status
+        const statusMessages = {
+          DONE: 'Problem marked as completed! 🎉',
+          REDO: 'Problem marked for review 📝',
+          TODO: 'Problem unmarked ↩️',
+        };
+        toast.success(
+          statusMessages[status as keyof typeof statusMessages] ||
+            'Progress updated!'
+        );
+
+        // Refresh the data
+        fetchCompanyProblems();
+      } else {
+        toast.error('Failed to update progress');
+      }
     } catch (error) {
       console.error('Error updating progress:', error);
+      toast.error('Failed to update progress');
     }
   };
 

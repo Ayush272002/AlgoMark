@@ -1,7 +1,6 @@
 'use client';
 
 import type React from 'react';
-
 import { useState } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
@@ -15,20 +14,28 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
+import { SigninSchema } from '@/zodTypes/SigninSchema';
+import { toast } from 'sonner';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+
+    // Validate with Zod schema
+    const validationResult = SigninSchema.safeParse({ email, password });
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast.error(firstError.message);
+      setLoading(false);
+      return;
+    }
 
     try {
       const result = await signIn('credentials', {
@@ -38,17 +45,18 @@ export default function SignIn() {
       });
 
       if (result?.error) {
-        setError('Invalid credentials');
+        toast.error('Invalid email or password');
       } else {
+        // if sign in was successful
         const session = await getSession();
         if (session) {
-          router.push('/');
+          router.push('/problems');
           router.refresh();
         }
       }
     } catch (error) {
-      setError('An error occurred. Please try again.');
-      console.error('SignIn error:', error);
+      console.error('Sign in error:', error);
+      toast.error('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -65,12 +73,6 @@ export default function SignIn() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -80,6 +82,7 @@ export default function SignIn() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                placeholder="Enter your email"
               />
             </div>
 
@@ -92,6 +95,7 @@ export default function SignIn() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                placeholder="Enter your password"
               />
             </div>
 

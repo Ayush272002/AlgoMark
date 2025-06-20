@@ -12,14 +12,15 @@ export function Navbar() {
     <nav className="bg-white shadow-sm border-b">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link
+            href={session ? '/problems' : '/'}
+            className="flex items-center space-x-2"
+          >
             <BookOpen className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">
-              LeetCode Tracker
-            </span>
+            <span className="text-xl font-bold text-gray-900">AlgoMark</span>
           </Link>
 
-          {session && (
+          {session ? (
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4 text-gray-600" />
@@ -30,11 +31,22 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                onClick={() => signOut({ callbackUrl: '/' })}
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Link href="/auth/signin">
+                <Button variant="ghost" size="sm">
+                  Sign In
+                </Button>
+              </Link>
+              <Link href="/auth/signup">
+                <Button size="sm">Sign Up</Button>
+              </Link>
             </div>
           )}
         </div>

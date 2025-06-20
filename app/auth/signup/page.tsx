@@ -1,7 +1,6 @@
 'use client';
 
 import type React from 'react';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -14,50 +13,68 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import Link from 'next/link';
+import { CheckCircle, X } from 'lucide-react';
+import { SignupSchema } from '@/zodTypes/SignupSchema';
+import axios from 'axios';
+import { toast } from 'sonner';
+
+interface PasswordRequirement {
+  label: string;
+  test: (password: string) => boolean;
+}
+
+const passwordRequirements: PasswordRequirement[] = [
+  { label: 'At least 8 characters', test: (p) => p.length >= 8 },
+  { label: 'One uppercase letter', test: (p) => /[A-Z]/.test(p) },
+  { label: 'One lowercase letter', test: (p) => /[a-z]/.test(p) },
+  { label: 'One number', test: (p) => /\d/.test(p) },
+  { label: 'One special character', test: (p) => /[\W_]/.test(p) },
+];
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showRequirements, setShowRequirements] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      toast.error('Passwords do not match');
       setLoading(false);
       return;
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    // Validate with Zod schema
+    const validationResult = SignupSchema.safeParse({ email, password });
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast.error(firstError.message);
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const response = await axios.post('/api/auth/signup', {
+        email,
+        password,
       });
 
-      const data = await response.json();
+      const data = response.data;
 
-      if (response.ok) {
-        router.push('/auth/signin?message=Account created successfully');
+      if (response.status === 201) {
+        toast.success('Account created successfully! Please sign in.');
+        router.push('/auth/signin');
       } else {
-        setError(data.error || 'An error occurred');
+        toast.error(data.message || data.error || 'An error occurred');
       }
     } catch (error) {
-      setError('An error occurred. Please try again.');
+      toast.error('An error occurred. Please try again.');
       console.error('SignUp error:', error);
     } finally {
       setLoading(false);
@@ -75,12 +92,6 @@ export default function SignUp() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -90,6 +101,7 @@ export default function SignUp() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                placeholder="Enter your email"
               />
             </div>
 
@@ -100,10 +112,41 @@ export default function SignUp() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onFocus={() => setShowRequirements(true)}
                 required
                 disabled={loading}
-                minLength={6}
+                placeholder="Create a strong password"
               />
+
+              {showRequirements && (
+                <div className="mt-2 p-3 bg-gray-50 rounded-md">
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Password requirements:
+                  </p>
+                  <div className="space-y-1">
+                    {passwordRequirements.map((req, index) => {
+                      const isValid = req.test(password);
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center space-x-2"
+                        >
+                          {isValid ? (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-gray-400" />
+                          )}
+                          <span
+                            className={`text-sm ${isValid ? 'text-green-700' : 'text-gray-600'}`}
+                          >
+                            {req.label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -115,8 +158,11 @@ export default function SignUp() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={loading}
-                minLength={6}
+                placeholder="Confirm your password"
               />
+              {confirmPassword && password !== confirmPassword && (
+                <p className="text-sm text-red-600">Passwords do not match</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={loading}>
