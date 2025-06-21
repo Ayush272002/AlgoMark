@@ -24,6 +24,9 @@ export default function CompanyPage() {
   const slug = params.slug as string;
   const [company, setCompany] = useState<CompanyProblem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'TODO' | 'REDO'>(
+    'ALL'
+  );
 
   const fetchCompanyProblems = useCallback(async () => {
     try {
@@ -67,7 +70,6 @@ export default function CompanyPage() {
       });
 
       if (response.ok) {
-        // Show success toast based on status
         const statusMessages = {
           DONE: 'Problem marked as completed! 🎉',
           REDO: 'Problem marked for review 📝',
@@ -142,7 +144,7 @@ export default function CompanyPage() {
           <div className="text-center py-12">
             <p className="text-gray-600 text-lg">Company not found</p>
             <Link href="/">
-              <Button className="mt-4">
+              <Button className="mt-4 cursor-pointer">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Companies
               </Button>
@@ -167,7 +169,7 @@ export default function CompanyPage() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
             <Link href="/">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="cursor-pointer">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
@@ -177,7 +179,20 @@ export default function CompanyPage() {
                 {company.name.replace(/-/g, ' ')}
               </h1>
               <p className="text-gray-600">
-                {company.problems.length} problems available
+                {statusFilter === 'ALL'
+                  ? `${company.problems.length} problems available`
+                  : `${
+                      company.problems.filter((problem) => {
+                        const currentStatus = problem.userStatus[0]?.status;
+                        if (statusFilter === 'TODO') {
+                          return !currentStatus || currentStatus === 'TODO';
+                        }
+                        if (statusFilter === 'REDO') {
+                          return currentStatus === 'REDO';
+                        }
+                        return true;
+                      }).length
+                    } ${statusFilter.toLowerCase()} problems`}
               </p>
             </div>
           </div>
@@ -237,16 +252,65 @@ export default function CompanyPage() {
           </Card>
         </div>
 
+        {/* Filter Options */}
+        <div className="flex items-center gap-2 mb-6">
+          <span className="text-sm font-medium text-gray-700">
+            Filter by status:
+          </span>
+          <Button
+            size="sm"
+            variant={statusFilter === 'ALL' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('ALL')}
+            className="cursor-pointer"
+          >
+            All Problems
+          </Button>
+          <Button
+            size="sm"
+            variant={statusFilter === 'TODO' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('TODO')}
+            className="cursor-pointer"
+          >
+            <Circle className="h-4 w-4 mr-1" />
+            Todo Only
+          </Button>
+          <Button
+            size="sm"
+            variant={statusFilter === 'REDO' ? 'default' : 'outline'}
+            onClick={() => setStatusFilter('REDO')}
+            className="cursor-pointer"
+          >
+            <RotateCcw className="h-4 w-4 mr-1" />
+            Redo Only
+          </Button>
+        </div>
+
         {/* Problems List */}
         <div className="space-y-4">
           {company.problems
+            .filter((problem) => {
+              const currentStatus = problem.userStatus[0]?.status;
+              if (statusFilter === 'TODO') {
+                return !currentStatus || currentStatus === 'TODO';
+              }
+              if (statusFilter === 'REDO') {
+                return currentStatus === 'REDO';
+              }
+              return true;
+            })
             .sort((a, b) => a.leetcodeId - b.leetcodeId)
             .map((problem) => {
               const currentStatus = problem.userStatus[0]?.status;
               return (
                 <Card
                   key={problem.id}
-                  className="hover:shadow-md transition-shadow"
+                  className={`hover:shadow-md transition-shadow ${
+                    currentStatus === 'DONE'
+                      ? 'bg-green-50'
+                      : currentStatus === 'REDO'
+                        ? 'bg-yellow-50'
+                        : 'bg-white'
+                  }`}
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
@@ -290,6 +354,7 @@ export default function CompanyPage() {
                               currentStatus === 'DONE' ? 'TODO' : 'DONE'
                             )
                           }
+                          className="cursor-pointer"
                         >
                           <CheckCircle className="h-4 w-4 mr-1" />
                           Done
@@ -305,11 +370,17 @@ export default function CompanyPage() {
                               currentStatus === 'REDO' ? 'TODO' : 'REDO'
                             )
                           }
+                          className="cursor-pointer"
                         >
                           <RotateCcw className="h-4 w-4 mr-1" />
                           Redo
                         </Button>
-                        <Button size="sm" variant="ghost" asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          asChild
+                          className="cursor-pointer"
+                        >
                           <a
                             href={problem.link}
                             target="_blank"
