@@ -165,7 +165,11 @@ export default function SignUp() {
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button
+              type="submit"
+              className="w-full cursor-pointer"
+              disabled={loading}
+            >
               {loading ? 'Creating account...' : 'Sign Up'}
             </Button>
           </form>
@@ -175,7 +179,7 @@ export default function SignUp() {
               Already have an account?{' '}
               <Link
                 href="/auth/signin"
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 hover:underline cursor-pointer"
               >
                 Sign in
               </Link>

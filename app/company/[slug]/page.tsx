@@ -115,12 +115,10 @@ export default function CompanyPage() {
 
   if (status === 'loading' || !session) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -128,12 +126,10 @@ export default function CompanyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading problems...</p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading problems...</p>
         </div>
       </div>
     );
@@ -243,89 +239,91 @@ export default function CompanyPage() {
 
         {/* Problems List */}
         <div className="space-y-4">
-          {company.problems.map((problem) => {
-            const currentStatus = problem.userStatus[0]?.status;
-            return (
-              <Card
-                key={problem.id}
-                className="hover:shadow-md transition-shadow"
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 flex-1">
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(currentStatus)}
-                        <span className="font-mono text-sm text-gray-500">
-                          #{problem.leetcodeId}
-                        </span>
-                      </div>
-
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">
-                          {problem.title}
-                        </h3>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge
-                            className={getDifficultyColor(problem.difficulty)}
-                          >
-                            {problem.difficulty}
-                          </Badge>
-                          <span className="text-sm text-gray-500">
-                            {problem.acceptance} acceptance
-                          </span>
-                          <span className="text-sm text-gray-500">
-                            Frequency: {problem.frequency.toFixed(2)}
+          {company.problems
+            .sort((a, b) => a.leetcodeId - b.leetcodeId)
+            .map((problem) => {
+              const currentStatus = problem.userStatus[0]?.status;
+              return (
+                <Card
+                  key={problem.id}
+                  className="hover:shadow-md transition-shadow"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4 flex-1">
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(currentStatus)}
+                          <span className="font-mono text-sm text-gray-500">
+                            #{problem.leetcodeId}
                           </span>
                         </div>
+
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900">
+                            {problem.title}
+                          </h3>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge
+                              className={getDifficultyColor(problem.difficulty)}
+                            >
+                              {problem.difficulty}
+                            </Badge>
+                            <span className="text-sm text-gray-500">
+                              {problem.acceptance} acceptance
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              Frequency: {problem.frequency.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant={
+                            currentStatus === 'DONE' ? 'default' : 'outline'
+                          }
+                          onClick={() =>
+                            updateProgress(
+                              problem.id,
+                              currentStatus === 'DONE' ? 'TODO' : 'DONE'
+                            )
+                          }
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Done
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={
+                            currentStatus === 'REDO' ? 'default' : 'outline'
+                          }
+                          onClick={() =>
+                            updateProgress(
+                              problem.id,
+                              currentStatus === 'REDO' ? 'TODO' : 'REDO'
+                            )
+                          }
+                        >
+                          <RotateCcw className="h-4 w-4 mr-1" />
+                          Redo
+                        </Button>
+                        <Button size="sm" variant="ghost" asChild>
+                          <a
+                            href={problem.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
                       </div>
                     </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        size="sm"
-                        variant={
-                          currentStatus === 'DONE' ? 'default' : 'outline'
-                        }
-                        onClick={() =>
-                          updateProgress(
-                            problem.id,
-                            currentStatus === 'DONE' ? 'TODO' : 'DONE'
-                          )
-                        }
-                      >
-                        <CheckCircle className="h-4 w-4 mr-1" />
-                        Done
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant={
-                          currentStatus === 'REDO' ? 'default' : 'outline'
-                        }
-                        onClick={() =>
-                          updateProgress(
-                            problem.id,
-                            currentStatus === 'REDO' ? 'TODO' : 'REDO'
-                          )
-                        }
-                      >
-                        <RotateCcw className="h-4 w-4 mr-1" />
-                        Redo
-                      </Button>
-                      <Button size="sm" variant="ghost" asChild>
-                        <a
-                          href={problem.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </CardContent>
+                </Card>
+              );
+            })}
         </div>
 
         {company.problems.length === 0 && (

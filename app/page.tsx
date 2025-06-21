@@ -43,7 +43,10 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {session ? (
                 <Link href="/problems">
-                  <Button size="lg" className="text-lg px-8 py-3">
+                  <Button
+                    size="lg"
+                    className="text-lg px-8 py-3 cursor-pointer"
+                  >
                     Continue Learning
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -51,7 +54,10 @@ export default function LandingPage() {
               ) : (
                 <>
                   <Link href="/auth/signup">
-                    <Button size="lg" className="text-lg px-8 py-3">
+                    <Button
+                      size="lg"
+                      className="text-lg px-8 py-3 cursor-pointer"
+                    >
                       Get Started Free
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
@@ -60,7 +66,7 @@ export default function LandingPage() {
                     <Button
                       variant="outline"
                       size="lg"
-                      className="text-lg px-8 py-3"
+                      className="text-lg px-8 py-3 cursor-pointer"
                     >
                       Sign In
                     </Button>
@@ -249,7 +255,10 @@ export default function LandingPage() {
             ) : (
               <>
                 <Link href="/auth/signup">
-                  <Button size="lg" className="text-lg px-8 py-3">
+                  <Button
+                    size="lg"
+                    className="text-lg px-8 py-3 cursor-pointer"
+                  >
                     Start Free Today
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
@@ -258,7 +267,7 @@ export default function LandingPage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="text-lg px-8 py-3"
+                    className="text-lg px-8 py-3 cursor-pointer"
                   >
                     Sign In
                   </Button>

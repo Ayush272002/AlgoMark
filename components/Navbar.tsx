@@ -32,6 +32,7 @@ export function Navbar() {
                 variant="ghost"
                 size="sm"
                 onClick={() => signOut({ callbackUrl: '/' })}
+                className="cursor-pointer"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
@@ -40,12 +41,14 @@ export function Navbar() {
           ) : (
             <div className="flex items-center space-x-2">
               <Link href="/auth/signin">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="cursor-pointer">
                   Sign In
                 </Button>
               </Link>
               <Link href="/auth/signup">
-                <Button size="sm">Sign Up</Button>
+                <Button size="sm" className="cursor-pointer">
+                  Sign Up
+                </Button>
               </Link>
             </div>
           )}
