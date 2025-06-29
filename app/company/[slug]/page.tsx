@@ -27,6 +27,7 @@ export default function CompanyPage() {
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'TODO' | 'REDO'>(
     'ALL'
   );
+  const [sortByFrequency, setSortByFrequency] = useState(false);
 
   const fetchCompanyProblems = useCallback(async () => {
     try {
@@ -283,6 +284,15 @@ export default function CompanyPage() {
             <RotateCcw className="h-4 w-4 mr-1" />
             Redo Only
           </Button>
+
+          <Button
+            size="sm"
+            variant={sortByFrequency ? 'default' : 'outline'}
+            onClick={() => setSortByFrequency(!sortByFrequency)}
+            className="cursor-pointer"
+          >
+            Frequency (High to Low)
+          </Button>
         </div>
 
         {/* Problems List */}
@@ -298,7 +308,12 @@ export default function CompanyPage() {
               }
               return true;
             })
-            .sort((a, b) => a.leetcodeId - b.leetcodeId)
+            .sort((a, b) => {
+              if (sortByFrequency) {
+                return b.frequency - a.frequency; // High to low frequency
+              }
+              return a.leetcodeId - b.leetcodeId; // Default: sort by LeetCode ID
+            })
             .map((problem) => {
               const currentStatus = problem.userStatus[0]?.status;
               return (
